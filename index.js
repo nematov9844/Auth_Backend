@@ -6,7 +6,7 @@ const cors = require('cors');
 const fs = require('fs');
 
 const app = express();
-const PORT = 5000;
+const PORT = process.env.PORT || 5000;
 const SECRET_KEY = "your_secret_key";
 const DB_FILE = './db.json';
 
@@ -25,6 +25,23 @@ const initializeDB = () => {
   }
 };
 initializeDB();
+
+// Middleware for token authentication
+const authenticateToken = (req, res, next) => {
+  const authHeader = req.headers.authorization;
+  if (!authHeader) {
+    return res.status(401).json({ message: 'Access denied. No token provided.' });
+  }
+
+  const token = authHeader.split(' ')[1];
+  try {
+    const decoded = jwt.verify(token, SECRET_KEY);
+    req.user = decoded; // Store decoded user info in request
+    next();
+  } catch (err) {
+    res.status(401).json({ message: 'Invalid token.' });
+  }
+};
 
 // 1. Register
 app.post('/register', async (req, res) => {
@@ -58,23 +75,15 @@ app.post('/login', async (req, res) => {
 });
 
 // 3. Get User Data (Protected)
-app.get('/user', (req, res) => {
-  const authHeader = req.headers.authorization;
+app.get('/user', authenticateToken, (req, res) => {
+  const db = readDB();
+  const user = db.users.find(u => u.id === req.user.id);
 
-  if (!authHeader) {
-    return res.status(401).json({ message: 'No token provided' });
+  if (!user) {
+    return res.status(404).json({ message: 'User not found' });
   }
 
-  const token = authHeader.split(' ')[1];
-  try {
-    const decoded = jwt.verify(token, SECRET_KEY);
-    const db = readDB();
-    const user = db.users.find(u => u.id === decoded.id);
-    if (!user) throw new Error();
-    res.json(user);
-  } catch {
-    res.status(401).json({ message: 'Invalid token' });
-  }
+  res.json(user);
 });
 
 // 4. Get All Posts
@@ -83,11 +92,11 @@ app.get('/posts', (req, res) => {
   res.json(db.posts); // Returns posts as an object
 });
 
-// 5. Create a Post
-app.post('/posts', (req, res) => {
+// 5. Create a Post (Protected)
+app.post('/posts', authenticateToken, (req, res) => {
   const db = readDB();
   const id = Date.now().toString(); // Unique ID as a string
-  const newPost = { id, ...req.body };
+  const newPost = { id, userId: req.user.id, ...req.body }; // Associate post with user
 
   db.posts[id] = newPost; // Add to posts object
   writeDB(db);
@@ -95,13 +104,17 @@ app.post('/posts', (req, res) => {
   res.status(201).json(newPost);
 });
 
-// 6. Update a Post
-app.put('/posts/:id', (req, res) => {
+// 6. Update a Post (Protected)
+app.put('/posts/:id', authenticateToken, (req, res) => {
   const { id } = req.params;
   const db = readDB();
 
   if (!db.posts[id]) {
     return res.status(404).json({ message: 'Post not found' });
+  }
+
+  if (db.posts[id].userId !== req.user.id) {
+    return res.status(403).json({ message: 'Access denied.' });
   }
 
   db.posts[id] = { ...db.posts[id], ...req.body }; // Update post
@@ -110,13 +123,17 @@ app.put('/posts/:id', (req, res) => {
   res.json(db.posts[id]);
 });
 
-// 7. Delete a Post
-app.delete('/posts/:id', (req, res) => {
+// 7. Delete a Post (Protected)
+app.delete('/posts/:id', authenticateToken, (req, res) => {
   const { id } = req.params;
   const db = readDB();
 
   if (!db.posts[id]) {
     return res.status(404).json({ message: 'Post not found' });
+  }
+
+  if (db.posts[id].userId !== req.user.id) {
+    return res.status(403).json({ message: 'Access denied.' });
   }
 
   const deletedPost = db.posts[id];
