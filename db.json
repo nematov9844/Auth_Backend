@@ -1,4 +1,10 @@
 {
-  "users": [],
+  "users": [
+       {
+      "id": 1734698418918,
+      "email": "jeki2004114r@gmail.com",
+      "password": "$2a$10$V7.zsi6mvWIVeaJggYdoFO6snCnQK04CbSNnsbjQay.taka9D93Oi"
+    }
+  ],
   "posts": {}
 }
