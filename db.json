@@ -1,9 +1,37 @@
 {
   "users": [
-       {
-      "id": 1734698418918,
-      "email": "jeki2004114r@gmail.com",
-      "password": "$2a$10$V7.zsi6mvWIVeaJggYdoFO6snCnQK04CbSNnsbjQay.taka9D93Oi"
+    {
+      "id": 1734878603062,
+      "email": "admin@gmail.com",
+      "password": "$2a$10$3JxCwCeRs.C1UGFwGPE4IeCGM2.c5sqh7mRfaC8c70GCPdiEjlVzO",
+      "profile": {
+        "firstName": "Ro'zimuhammad",
+        "lastName": "Nematov",
+        "age": "23",
+        "bio": "didsfjdgsfhf"
+      }
+    },
+    {
+      "id": 1734878718745,
+      "email": "ad@gmail.com",
+      "password": "$2a$10$.zWfVdyJwDxgCuHjaHpgpuj6pXqO4MFGL7NdQSgFWwd8YuLC1pMBq",
+      "profile": {
+        "firstName": "svdbdgnfhjh",
+        "lastName": "fagdsdgfhjj",
+        "age": "35",
+        "bio": "gsfhdgfhgjh"
+      }
+    },
+    {
+      "id": 1734893287609,
+      "email": "jeki4323567@gmail.com",
+      "password": "$2a$10$taW556olFHO5yiPHsO5z.Od60wNZLH8HhKmS6JxWgGniZCnTZ.OQW",
+      "profile": {
+        "firstName": "salom",
+        "lastName": "dafsgdfhg",
+        "age": "21",
+        "bio": "sadsfgfhgjhewrrghjh"
+      }
     }
   ],
   "posts": {}

@@ -57,7 +57,7 @@ app.use((err, req, res, next) => {
   res.status(err.status || 500).json({ message: err.message || 'Internal server error' });
 });
 
-// 1. Register
+// 1. Register uchun end point 
 app.post('/register', async (req, res, next) => {
   try {
     const { email, password } = req.body;
@@ -83,7 +83,7 @@ app.post('/register', async (req, res, next) => {
   }
 });
 
-// 2. Login
+// 2. Login uchun endpooind 
 app.post('/login', async (req, res, next) => {
   try {
     const { email, password } = req.body;
@@ -101,7 +101,7 @@ app.post('/login', async (req, res, next) => {
   }
 });
 
-// 3. Get User Data (Protected)
+// 3. Get User Data (Protected) 
 app.get('/user', authenticateToken, (req, res, next) => {
   try {
     const db = readDB();
@@ -200,6 +200,77 @@ app.delete('/posts/:id', authenticateToken, (req, res, next) => {
     next(err);
   }
 });
+
+// 8. Create Profile (Protected)
+app.post('/user/profile', authenticateToken, async (req, res, next) => {
+  try {
+    const { firstName, lastName, age, bio } = req.body;
+    const db = readDB();
+    const user = db.users.find(u => u.id === req.user.id);
+
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    if (user.profile) {
+      return res.status(400).json({ message: 'Profile already exists. You can update it.' });
+    }
+
+    user.profile = { firstName, lastName, age, bio }; // Save profile
+    writeDB(db);
+
+    res.status(201).json({ message: 'Profile created successfully', profile: user.profile });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// 9. Get Profile (Protected)
+app.get('/user/profile', authenticateToken, (req, res, next) => {
+  try {
+    const db = readDB();
+    const user = db.users.find(u => u.id === req.user.id);
+
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    if (!user.profile) {
+      return res.status(404).json({ message: 'Profile not found. Please create a profile.' });
+    }
+
+    res.json({...user.profile,email:user.email}); // Return profile data
+  } catch (err) {
+    next(err);
+  }
+});
+
+// 10. Update Profile (Protected)
+app.patch('/user/profile', authenticateToken, async (req, res, next) => {
+  try {
+    const { firstName, lastName, age, bio, email } = req.body;  // emailni ham olish
+    const db = readDB();
+    const user = db.users.find(u => u.id === req.user.id);
+
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    if (!user.profile) {
+      return res.status(404).json({ message: 'Profile not found. Please create a profile first.' });
+    }
+
+    // Update profile with email
+    user.profile = { ...user.profile, firstName, lastName, age, bio };
+    user.email = email; // emailni yangilash
+    writeDB(db);
+
+    res.json({ message: 'Profile updated successfully', profile: user.profile });
+  } catch (err) {
+    next(err);
+  }
+});
+
 
 app.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);
